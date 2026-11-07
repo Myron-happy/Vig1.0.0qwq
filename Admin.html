@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <title>站点管理 - Vig</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            --background: #151b23;
+            --panel: #202a36;
+            --field: #171f2a;
+            --text: #edf3f8;
+            --muted: #b3c0ce;
+            --line: #586b80;
+            --accent: #9adbf6;
+            --primary: #9adbf6;
+            --primary-text: #153444;
+            --danger: #ffb7ab;
+        }
+
+        :root[data-theme="dark"] {
+            --background: #121212;
+            --panel: #1e1e1e;
+            --field: #161616;
+            --line: #646464;
+        }
+
+        :root[data-theme="light"] {
+            color-scheme: light;
+            --background: #edf3f8;
+            --panel: #fff;
+            --field: #f6f9fc;
+            --text: #182a3b;
+            --muted: #4e6276;
+            --line: #8195a8;
+            --accent: #17617f;
+            --primary: #17617f;
+            --primary-text: #fff;
+            --danger: #9b3c2e;
+        }
+
+        * { box-sizing: border-box; }
+        [hidden] { display: none !important; }
+
+        body {
+            margin: 0;
+            background: var(--background);
+            color: var(--text);
+            font: 16px/1.6 system-ui, "Microsoft YaHei", sans-serif;
+        }
+
+        .shell { width: min(100% - 2rem, 66rem); margin-inline: auto; }
+
+        .site-header {
+            border-bottom: 1px solid var(--line);
+            background: var(--panel);
+        }
+
+        .site-header .shell, nav, .panel-heading, .actions, .message-meta {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+        }
+
+        .site-header .shell, .panel-heading, .message-meta { justify-content: space-between; }
+        .site-header .shell { flex-wrap: wrap; padding-block: .85rem; }
+        nav, .actions, .message-meta { flex-wrap: wrap; }
+        .brand { color: var(--accent); font-size: 1.2rem; font-weight: 750; }
+        a { color: var(--accent); text-underline-offset: .2em; }
+        main { padding-block: clamp(1.75rem, 5vw, 3.75rem); }
+        h1, h2, p { margin: 0; }
+        h1 { font-size: clamp(1.9rem, 6vw, 2.85rem); line-height: 1.2; }
+        h2 { font-size: 1.2rem; }
+        .intro { color: var(--muted); margin: .5rem 0 1.75rem; }
+        .dashboard-grid { display: grid; gap: 1rem; align-items: start; }
+
+        @media (min-width: 48rem) {
+            .dashboard-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); }
+        }
+
+        .panel {
+            padding: clamp(1rem, 3vw, 1.5rem);
+            border: 1px solid var(--line);
+            border-radius: .9rem;
+            background: var(--panel);
+        }
+
+        #gate { max-width: 30rem; }
+        #gate-retry { margin-top: .75rem; }
+        fieldset { min-inline-size: 0; border: 0; padding: 0; margin: 0; }
+        label { display: block; font-weight: 650; margin: 1rem 0 .3rem; }
+        button, input, textarea { font: inherit; }
+        input, textarea {
+            width: 100%;
+            min-height: 2.75rem;
+            padding: .5rem .7rem;
+            border: 1px solid var(--line);
+            border-radius: .45rem;
+            background: var(--field);
+            color: var(--text);
+        }
+
+        textarea { resize: vertical; }
+        button {
+            min-height: 2.5rem;
+            padding: .35rem .75rem;
+            border: 1px solid var(--line);
+            border-radius: .45rem;
+            background: var(--field);
+            color: var(--text);
+            cursor: pointer;
+        }
+
+        button:hover:not(:disabled) { border-color: var(--accent); }
+        button:disabled { opacity: .6; cursor: default; }
+        :where(a, button, input, textarea):focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 3px;
+        }
+
+        .primary {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: var(--primary-text);
+            font-weight: 700;
+        }
+
+        .actions { margin-top: 1rem; }
+        .feedback { margin-top: .55rem; color: var(--muted); overflow-wrap: anywhere; }
+        .feedback:empty { margin: 0; }
+        .feedback[data-error="true"], .delete { color: var(--danger); }
+        #dashboard-status:not(:empty) { margin: 0 0 .8rem; }
+        .messages { padding: 0; margin: .65rem 0 0; list-style: none; }
+        .messages li { border-top: 1px solid var(--line); padding: .8rem 0; }
+        .messages li:last-child { padding-bottom: 0; }
+        .message-meta { overflow-wrap: anywhere; }
+        .message-meta time { color: var(--muted); font-size: .85rem; }
+        .message-text { margin: .4rem 0 .65rem; overflow-wrap: anywhere; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <div class="shell">
+            <span class="brand">Vig · 管理后台</span>
+            <nav aria-label="管理操作">
+                <a href="/">返回首页</a>
+                <button id="logout" type="button" hidden>退出登录</button>
+            </nav>
+        </div>
+    </header>
+    <main class="shell">
+        <h1 id="page-title" tabindex="-1">站点管理</h1>
+        <p class="intro">管理首页内容和公开的访客留言。</p>
+
+        <section class="panel" id="gate" aria-labelledby="gate-heading">
+            <h2 id="gate-heading">管理员登录</h2>
+            <p class="feedback" id="gate-status" role="status">正在检查登录状态…</p>
+            <form id="login-form" hidden>
+                <label for="password">管理密码</label>
+                <input id="password" type="password" autocomplete="current-password" required>
+                <div class="actions"><button class="primary" id="login" type="submit">登录</button></div>
+            </form>
+            <button id="gate-retry" type="button" hidden>重新连接</button>
+        </section>
+
+        <div id="dashboard" hidden>
+            <p class="feedback" id="dashboard-status" role="status"></p>
+            <div class="dashboard-grid">
+                <section class="panel" aria-labelledby="site-heading">
+                    <h2 id="site-heading">首页内容</h2>
+                    <form id="site-form">
+                        <fieldset id="site-fields" disabled>
+                            <label for="site-title">网站名称</label>
+                            <input id="site-title" name="title" maxlength="40" required>
+                            <label for="site-version">当前版本</label>
+                            <input id="site-version" name="version" maxlength="20" required>
+                            <label for="site-announcement">首页公告</label>
+                            <textarea id="site-announcement" name="announcement" rows="5" maxlength="300" required></textarea>
+                            <div class="actions"><button class="primary" type="submit">保存并发布</button></div>
+                        </fieldset>
+                    </form>
+                    <p class="feedback" id="site-status" role="status"></p>
+                    <button id="site-retry" class="actions" type="button" hidden>重新加载</button>
+                </section>
+                <section class="panel" aria-labelledby="messages-heading">
+                    <div class="panel-heading">
+                        <h2 id="messages-heading">访客留言</h2>
+                        <button id="refresh" type="button">刷新留言</button>
+                    </div>
+                    <p class="feedback" id="messages-status" role="status"></p>
+                    <ul id="messages" class="messages" aria-label="留言列表"></ul>
+                </section>
+            </div>
+        </div>
+    </main>
+    <script>
+        try {
+            document.documentElement.dataset.theme = localStorage.getItem('vigTheme') || 'default';
+        } catch {}
+
+        const gate = document.getElementById('gate');
+        const gateHeading = document.getElementById('gate-heading');
+        const gateStatus = document.getElementById('gate-status');
+        const gateRetry = document.getElementById('gate-retry');
+        const loginForm = document.getElementById('login-form');
+        const password = document.getElementById('password');
+        const login = document.getElementById('login');
+        const logout = document.getElementById('logout');
+        const dashboard = document.getElementById('dashboard');
+        const dashboardStatus = document.getElementById('dashboard-status');
+        const siteForm = document.getElementById('site-form');
+        const siteFields = document.getElementById('site-fields');
+        const siteStatus = document.getElementById('site-status');
+        const siteRetry = document.getElementById('site-retry');
+        const refresh = document.getElementById('refresh');
+        const messagesStatus = document.getElementById('messages-status');
+        const messageList = document.getElementById('messages');
+        const dateFormat = new Intl.DateTimeFormat('zh-CN', { dateStyle: 'medium', timeStyle: 'short' });
+        let busy = false;
+        let settingsReady = false;
+        let messages = [];
+
+        function announce(element, message, isError = false) {
+            element.textContent = message;
+            element.dataset.error = isError;
+        }
+
+        async function request(path, method = 'GET', body) {
+            const headers = { Accept: 'application/json' };
+            const options = { method, headers, cache: 'no-store', signal: AbortSignal.timeout?.(10000) };
+            if (body !== undefined) {
+                headers['Content-Type'] = 'application/json';
+                options.body = JSON.stringify(body);
+            }
+
+            let response;
+            try {
+                response = await fetch(path, options);
+            } catch {
+                throw new Error('无法连接到网站服务。');
+            }
+            const data = await response.json().catch(() => null);
+            if (!response.ok || data === null) {
+                const error = new Error(data?.error || '网站服务未返回有效结果，请重试。');
+                error.status = response.status;
+                throw error;
+            }
+            return data;
+        }
+
+        function syncControls() {
+            for (const control of [login, logout, gateRetry, siteRetry, refresh]) {
+                control.disabled = busy;
+            }
+            siteFields.disabled = busy || !settingsReady;
+            for (const button of messageList.querySelectorAll('button')) button.disabled = busy;
+        }
+
+        async function run(action) {
+            if (busy) return;
+            busy = true;
+            syncControls();
+            try {
+                await action();
+            } finally {
+                busy = false;
+                syncControls();
+            }
+        }
+
+        function showGate(message, isError = false, allowLogin = true) {
+            dashboard.hidden = true;
+            logout.hidden = true;
+            gate.hidden = false;
+            gateHeading.textContent = allowLogin ? '管理员登录' : '管理服务暂不可用';
+            loginForm.hidden = !allowLogin;
+            gateRetry.hidden = allowLogin;
+            password.value = '';
+            announce(gateStatus, message, isError);
+            if (allowLogin) password.focus();
+        }
+
+        function reportError(element, error) {
+            if (error.status === 401) {
+                if (!dashboard.hidden) showGate('登录已过期，请重新登录。', true);
+                return;
+            }
+            announce(element, error.message, true);
+        }
+
+        function setSiteFields(site) {
+            for (const name of ['title', 'version', 'announcement']) {
+                siteForm.elements.namedItem(name).value = site[name];
+            }
+        }
+
+        async function loadSite() {
+            siteRetry.hidden = true;
+            announce(siteStatus, '正在读取首页内容…');
+            try {
+                setSiteFields(await request('/api/admin/site'));
+                settingsReady = true;
+                announce(siteStatus, '');
+            } catch (error) {
+                reportError(siteStatus, error);
+                siteRetry.hidden = false;
+            }
+        }
+
+        function renderMessages() {
+            const entries = document.createDocumentFragment();
+            for (const message of messages) {
+                const item = document.createElement('li');
+                const meta = document.createElement('div');
+                meta.className = 'message-meta';
+                const author = document.createElement('strong');
+                author.textContent = message.name;
+                const time = document.createElement('time');
+                time.dateTime = message.createdAt;
+                time.textContent = dateFormat.format(new Date(message.createdAt));
+                const content = document.createElement('p');
+                content.className = 'message-text';
+                content.textContent = message.text;
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.className = 'delete';
+                remove.dataset.id = message.id;
+                remove.textContent = '删除';
+                remove.setAttribute('aria-label', '删除 ' + message.name + ' 的留言');
+                remove.disabled = busy;
+                meta.append(author, time);
+                item.append(meta, content, remove);
+                entries.append(item);
+            }
+            messageList.replaceChildren(entries);
+        }
+
+        async function loadMessages() {
+            announce(messagesStatus, '正在读取留言…');
+            try {
+                const data = await request('/api/guestbook');
+                messages = data.messages;
+                renderMessages();
+                announce(messagesStatus, messages.length ? `共 ${messages.length} 条留言` : '暂无访客留言。');
+            } catch (error) {
+                reportError(messagesStatus, error);
+            }
+        }
+
+        async function showDashboard() {
+            gate.hidden = true;
+            loginForm.hidden = true;
+            password.value = '';
+            dashboard.hidden = false;
+            logout.hidden = false;
+            settingsReady = false;
+            siteForm.reset();
+            messages = [];
+            renderMessages();
+            announce(dashboardStatus, '');
+            document.getElementById('page-title').focus();
+            await Promise.all([loadSite(), loadMessages()]);
+        }
+
+        async function checkSession() {
+            gateRetry.hidden = true;
+            announce(gateStatus, '正在检查登录状态…');
+            try {
+                const session = await request('/api/admin/session');
+                if (session.authenticated) await showDashboard();
+                else showGate('请输入管理员密码。');
+            } catch (error) {
+                showGate(error.message, true, false);
+            }
+        }
+
+        loginForm.addEventListener('submit', event => {
+            event.preventDefault();
+            run(async () => {
+                announce(gateStatus, '正在登录…');
+                try {
+                    await request('/api/admin/login', 'POST', { password: password.value });
+                    await showDashboard();
+                } catch (error) {
+                    if (error.status === 503) showGate(error.message, true, false);
+                    else announce(gateStatus, error.message, true);
+                }
+            });
+        });
+
+        logout.addEventListener('click', () => run(async () => {
+            announce(dashboardStatus, '正在退出…');
+            try {
+                await request('/api/admin/logout', 'POST', {});
+                showGate('已退出登录。');
+            } catch (error) {
+                reportError(dashboardStatus, error);
+            }
+        }));
+
+        siteForm.addEventListener('submit', event => {
+            event.preventDefault();
+            if (!settingsReady) return;
+            const values = Object.fromEntries(new FormData(siteForm));
+            run(async () => {
+                announce(siteStatus, '正在保存…');
+                try {
+                    const saved = await request('/api/admin/site', 'PUT', values);
+                    setSiteFields(saved);
+                    announce(siteStatus, '已保存并发布到首页。');
+                } catch (error) {
+                    reportError(siteStatus, error);
+                }
+            });
+        });
+
+        messageList.addEventListener('click', event => {
+            const button = event.target.closest('button[data-id]');
+            if (!button || busy) return;
+            const id = button.dataset.id;
+            if (!window.confirm('删除这条访客留言？')) return;
+            run(async () => {
+                announce(messagesStatus, '正在删除留言…');
+                try {
+                    await request('/api/admin/guestbook/' + encodeURIComponent(id), 'DELETE');
+                    messages = messages.filter(message => message.id !== id);
+                    renderMessages();
+                    announce(messagesStatus, `留言已删除。剩余 ${messages.length} 条留言。`);
+                } catch (error) {
+                    if (error.status === 404) {
+                        messages = messages.filter(message => message.id !== id);
+                        renderMessages();
+                        announce(messagesStatus, '这条留言已被删除。');
+                    } else {
+                        reportError(messagesStatus, error);
+                    }
+                }
+            });
+        });
+
+        gateRetry.addEventListener('click', () => run(checkSession));
+        siteRetry.addEventListener('click', () => run(loadSite));
+        refresh.addEventListener('click', () => run(loadMessages));
+        run(checkSession);
+    </script>
+</body>
+</html>

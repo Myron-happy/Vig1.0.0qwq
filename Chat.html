@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>聊天室 - Vioz 官方网站</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            --background: #464646;
+            --panel: #3b3b3b;
+            --field: #303030;
+            --text: #f2f2f2;
+            --muted: #c3c7c9;
+            --line: #737a7d;
+            --accent: #9bd9f3;
+            --button: #9bd9f3;
+            --button-text: #192d36;
+            --error: #ffb4a6;
+        }
+
+        :root[data-theme="dark"] {
+            --background: #121212;
+            --panel: #1d1d1d;
+            --field: #171717;
+            --line: #555e62;
+        }
+
+        :root[data-theme="light"] {
+            color-scheme: light;
+            --background: #f5f5f5;
+            --panel: #fff;
+            --field: #fff;
+            --text: #292d30;
+            --muted: #515b62;
+            --line: #8c9ba1;
+            --accent: #216680;
+            --button: #b5e0f1;
+            --error: #a03d2f;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            background: var(--background);
+            color: var(--text);
+            font: 16px/1.6 system-ui, "Microsoft YaHei", sans-serif;
+        }
+
+        a { color: var(--accent); }
+
+        a:focus-visible,
+        button:focus-visible,
+        input:focus-visible,
+        textarea:focus-visible,
+        .chat-log:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 3px;
+        }
+
+        main {
+            width: min(100%, 820px);
+            margin-inline: auto;
+            padding: clamp(20px, 5vw, 52px) clamp(14px, 4vw, 30px) 40px;
+        }
+
+        .back {
+            display: inline-block;
+            padding: 5px 12px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            font-size: 14px;
+            text-decoration: none;
+        }
+
+        .back:hover { border-color: var(--accent); }
+
+        h1 {
+            margin: 14px 0 4px;
+            color: var(--accent);
+            font-size: clamp(24px, 5vw, 34px);
+            line-height: 1.3;
+        }
+
+        .room-note,
+        .connection,
+        .composer-note {
+            margin: 0;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .connection {
+            margin-top: 16px;
+            padding-bottom: 8px;
+        }
+
+        .connection[data-state="connected"] { color: var(--accent); }
+
+        .setup {
+            margin: 0 0 14px;
+            padding: 12px 14px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: var(--panel);
+            font-size: 14px;
+            overflow-wrap: anywhere;
+        }
+
+        code { color: var(--accent); }
+
+        .chat-log {
+            height: clamp(240px, 48vh, 500px);
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            border: 1px solid var(--line);
+            border-radius: 8px 8px 0 0;
+            background: var(--panel);
+        }
+
+        .chat-log ol {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .chat-log li {
+            padding: 10px 16px 11px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .message-meta {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            gap: 2px 10px;
+            color: var(--accent);
+            font-size: 14px;
+            overflow-wrap: anywhere;
+        }
+
+        .message-meta time {
+            color: var(--muted);
+            font-size: 12px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .message-text {
+            margin: 4px 0 0;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        .empty {
+            margin: 0;
+            padding: 28px 16px;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        .composer {
+            padding: 14px 16px;
+            border: 1px solid var(--line);
+            border-top: 0;
+            border-radius: 0 0 8px 8px;
+            background: var(--panel);
+        }
+
+        .nickname {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        label { font-size: 14px; }
+
+        .nickname label { flex: none; }
+
+        input,
+        textarea,
+        button { font: inherit; }
+
+        input,
+        textarea {
+            min-width: 0;
+            padding: 8px 10px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: var(--field);
+            color: var(--text);
+        }
+
+        input { width: min(100%, 260px); }
+
+        input::placeholder,
+        textarea::placeholder { color: var(--muted); }
+
+        .compose-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 10px;
+            align-items: end;
+            margin-top: 5px;
+        }
+
+        textarea {
+            width: 100%;
+            resize: vertical;
+        }
+
+        button {
+            min-height: 42px;
+            padding: 6px 16px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: var(--button);
+            color: var(--button-text);
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            background: var(--field);
+            color: var(--muted);
+            cursor: default;
+        }
+
+        button:hover:enabled { border-color: var(--accent); }
+
+        .composer-note { margin-top: 7px; }
+
+        .error {
+            margin: 8px 0 0;
+            color: var(--error);
+            font-size: 14px;
+        }
+
+        .error:empty { margin: 0; }
+
+        @media (max-width: 480px) {
+            .chat-log li,
+            .composer { padding-inline: 12px; }
+            .compose-row { gap: 8px; }
+            button { padding-inline: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <a class="back" href="index.html">← 返回首页</a>
+        <h1>公共聊天室</h1>
+        <p class="room-note">打开聊天室的访客会进入同一个公共房间。最近 100 条消息暂存在服务器，服务重启后会清空。</p>
+        <p class="connection" id="chat-status" role="status">正在连接聊天室…</p>
+        <p class="setup" id="chat-setup" hidden>请在网站目录运行 <code>node chat-server.cjs</code>，然后打开 <a href="http://127.0.0.1:8787/Chat.html">http://127.0.0.1:8787/Chat.html</a>。</p>
+        <div class="chat-log" id="chat-log" tabindex="0" aria-label="聊天记录">
+            <p class="empty" id="chat-empty">还没有消息。</p>
+            <ol id="chat-messages" role="log" aria-label="聊天消息" aria-relevant="additions"></ol>
+        </div>
+        <form class="composer" id="chat-form">
+            <div class="nickname">
+                <label for="chat-name">昵称</label>
+                <input id="chat-name" type="text" autocomplete="nickname" maxlength="20" placeholder="取一个昵称" required>
+            </div>
+            <label for="chat-text">消息</label>
+            <div class="compose-row">
+                <textarea id="chat-text" rows="2" maxlength="300" placeholder="说点什么吧" aria-describedby="chat-help" required></textarea>
+                <button id="chat-send" type="submit" disabled>发送</button>
+            </div>
+            <p class="composer-note" id="chat-help">昵称最多 20 字，消息最多 300 字。回车发送，Shift + 回车换行。</p>
+            <p class="error" id="chat-error" role="alert"></p>
+        </form>
+    </main>
+    <script>
+        const statusText = document.getElementById('chat-status');
+        const setupNote = document.getElementById('chat-setup');
+        const log = document.getElementById('chat-log');
+        const emptyNote = document.getElementById('chat-empty');
+        const messageList = document.getElementById('chat-messages');
+        const form = document.getElementById('chat-form');
+        const nameInput = document.getElementById('chat-name');
+        const textInput = document.getElementById('chat-text');
+        const sendButton = document.getElementById('chat-send');
+        const errorText = document.getElementById('chat-error');
+        const seenIds = new Set();
+        const timeFormat = new Intl.DateTimeFormat('zh-CN', {
+            month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false
+        });
+        let connected = false;
+        let sending = false;
+        let retryDelay = 1000;
+
+        function setTheme(theme) {
+            document.documentElement.dataset.theme = theme === 'dark' || theme === 'light' ? theme : 'default';
+        }
+
+        try {
+            setTheme(localStorage.getItem('vigTheme'));
+            nameInput.value = (localStorage.getItem('vigChatName') || '').slice(0, 20);
+        } catch {}
+
+        window.addEventListener('storage', event => {
+            if (event.key === 'vigTheme' || event.key === null) setTheme(event.newValue);
+        });
+
+        function updateButton() {
+            const nameLength = nameInput.value.trim().length;
+            const textLength = textInput.value.trim().length;
+            sendButton.disabled = !connected || sending || nameLength < 1 || nameLength > 20 || textLength < 1 || textLength > 300;
+            sendButton.textContent = sending ? '发送中…' : '发送';
+        }
+
+        function setConnection(isConnected, label, showSetup) {
+            connected = isConnected;
+            statusText.textContent = label;
+            statusText.dataset.state = isConnected ? 'connected' : 'offline';
+            setupNote.hidden = !showSetup;
+            updateButton();
+        }
+
+        function addMessage(message, scroll = true) {
+            if (!message || !['number', 'string'].includes(typeof message.id) ||
+                typeof message.name !== 'string' || typeof message.text !== 'string' ||
+                typeof message.createdAt !== 'string') return;
+
+            const date = new Date(message.createdAt);
+            if (Number.isNaN(date.getTime())) return;
+
+            const id = String(message.id);
+            if (seenIds.has(id)) return;
+
+            const atBottom = log.scrollHeight - log.scrollTop - log.clientHeight < 48;
+            const item = document.createElement('li');
+            item.dataset.id = id;
+            const meta = document.createElement('div');
+            meta.className = 'message-meta';
+            const name = document.createElement('strong');
+            name.textContent = message.name;
+            const time = document.createElement('time');
+            time.dateTime = message.createdAt;
+            time.title = date.toLocaleString('zh-CN');
+            time.textContent = timeFormat.format(date);
+            const content = document.createElement('p');
+            content.className = 'message-text';
+            content.textContent = message.text;
+
+            meta.append(name, time);
+            item.append(meta, content);
+            messageList.append(item);
+            seenIds.add(id);
+            emptyNote.hidden = true;
+            if (messageList.children.length > 100) {
+                const oldest = messageList.firstElementChild;
+                seenIds.delete(oldest.dataset.id);
+                oldest.remove();
+            }
+            if (scroll && atBottom) log.scrollTop = log.scrollHeight;
+        }
+
+        function connect() {
+            const source = new EventSource('/api/chat/events');
+            let retryScheduled = false;
+
+            function reconnect() {
+                if (retryScheduled) return;
+                retryScheduled = true;
+                source.close();
+                setConnection(false, '连接不可用，正在重连…', true);
+                setTimeout(connect, retryDelay);
+                retryDelay = Math.min(retryDelay * 2, 15000);
+            }
+
+            source.addEventListener('history', event => {
+                try {
+                    const history = JSON.parse(event.data);
+                    if (!Array.isArray(history)) throw new Error('Invalid history');
+                    seenIds.clear();
+                    messageList.replaceChildren();
+                    emptyNote.hidden = false;
+                    for (const message of history.slice(-100)) addMessage(message, false);
+                    log.scrollTop = log.scrollHeight;
+                    retryDelay = 1000;
+                    setConnection(true, '已连接', false);
+                } catch {
+                    reconnect();
+                }
+            });
+
+            source.addEventListener('message', event => {
+                try {
+                    addMessage(JSON.parse(event.data));
+                } catch {
+                    reconnect();
+                }
+            });
+
+            source.addEventListener('error', reconnect);
+        }
+
+        nameInput.addEventListener('input', () => {
+            try {
+                localStorage.setItem('vigChatName', nameInput.value.trim());
+            } catch {}
+            updateButton();
+        });
+
+        textInput.addEventListener('input', updateButton);
+
+        textInput.addEventListener('keydown', event => {
+            if (event.key !== 'Enter' || event.shiftKey || event.isComposing || event.keyCode === 229) return;
+            event.preventDefault();
+            if (!sendButton.disabled) form.requestSubmit();
+        });
+
+        form.addEventListener('submit', async event => {
+            event.preventDefault();
+            if (sendButton.disabled) return;
+
+            const name = nameInput.value.trim();
+            const draft = textInput.value;
+            sending = true;
+            errorText.textContent = '';
+            updateButton();
+
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 10000);
+
+            try {
+                const response = await fetch('/api/chat/messages', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, text: draft.trim() }),
+                    signal: controller.signal
+                });
+                const result = await response.json().catch(() => null);
+                if (!response.ok) {
+                    errorText.textContent = typeof result?.error === 'string' ? result.error : '发送失败，请稍后重试。';
+                } else if (response.status !== 201 || typeof result?.id !== 'string') {
+                    errorText.textContent = '没有收到发送确认，请先查看聊天记录。';
+                } else if (textInput.value === draft) {
+                    textInput.value = '';
+                }
+            } catch (error) {
+                errorText.textContent = error.name === 'AbortError' ? '发送超时，请先查看聊天记录。' : '网络连接失败，请稍后重试。';
+            } finally {
+                clearTimeout(timeout);
+                sending = false;
+                updateButton();
+            }
+        });
+
+        if (location.protocol === 'file:') {
+            setConnection(false, '请通过聊天室服务器打开此页。', true);
+        } else if (typeof EventSource === 'undefined') {
+            setConnection(false, '当前浏览器不支持聊天室连接。', false);
+        } else {
+            connect();
+        }
+    </script>
+</body>
+</html>

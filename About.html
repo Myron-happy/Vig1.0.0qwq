@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vig - 关于</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            background: #464646; 
+            font-family: sans-serif;
+            color: #ffffff;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        
+        .about-title {
+            color: skyblue;
+            font-size: 32px;
+            font-weight: bold;
+            text-shadow: none;
+            letter-spacing: 2px;
+            margin-bottom: 30px;
+            text-align: center;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        
+        .about-card {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(135, 206, 235, 0.25);
+            border-radius: 20px;
+            padding: 40px 30px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            transition: all 0.4s ease;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        
+        .about-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+            border-color: rgba(135, 206, 235, 0.5);
+        }
+
+        
+        .about-card p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 16px;
+            line-height: 2;
+            margin-bottom: 20px;
+            position: relative;
+            padding-left: 20px;
+        }
+
+        
+        .about-card p::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 14px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: skyblue;
+            box-shadow: none;
+        }
+
+        
+        .highlight-version {
+            color: skyblue;
+            font-weight: bold;
+            font-size: 18px;
+            text-shadow: none;
+        }
+
+        
+        .thanks-text {
+            color: #ff9f43;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 30px;
+            margin-bottom: 0;
+            padding-left: 0;
+            font-size: 17px;
+            text-shadow: none;
+        }
+        .thanks-text::before { display: none; } 
+
+        
+        .back-link {
+            margin-top: 40px;
+            animation: fadeInUp 1s ease-out;
+        }
+        .back-link a {
+            color: skyblue;
+            text-decoration: none;
+            font-size: 16px;
+            padding: 12px 30px;
+            border: 1px solid rgba(135, 206, 235, 0.4);
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+        .back-link a:hover {
+            background: rgba(135, 206, 235, 0.15);
+            box-shadow: none;
+            transform: scale(1.05);
+        }
+
+        
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        
+        @media (max-width: 600px) {
+            .about-title { font-size: 26px; }
+            .about-card { padding: 25px 20px; }
+            .about-card p { font-size: 15px; }
+        }
+		        
+		        body.theme-dark { background: #121212 !important; }
+		        body.theme-light { background: #f5f5f5 !important; color: #333 !important; }
+		
+		        
+		        body.theme-dark .about-title { color: skyblue; text-shadow: none; }
+		        body.theme-dark .about-card { background: rgba(255, 255, 255, 0.05); border-color: #333; }
+		        
+		        
+		        body.theme-light .about-title { color: #009dff; text-shadow: none; }
+		        body.theme-light .about-card { background: rgba(0, 0, 0, 0.05); border-color: #ddd; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+		        body.theme-light .about-card p { color: #555; }
+		        body.theme-light .about-card p::before { background-color: #009dff; box-shadow: none; }
+		        body.theme-light .highlight-version { color: #009dff; text-shadow: none; }
+		        body.theme-light .thanks-text { color: #d35400; text-shadow: none; }
+		        body.theme-light .back-link a { color: #009dff; border-color: #009dff; }
+		        body.theme-light .back-link a:hover { background: #009dff; color: #fff; }
+		        
+		        
+		        #settings-wrapper { position: fixed; bottom: 30px; right: 30px; z-index: 9999; font-family: sans-serif; }
+		        #settings-btn { width: 50px; height: 50px; border-radius: 50%; background: #333; color: white; border: 2px solid skyblue; cursor: pointer; font-size: 24px; display: flex; justify-content: center; align-items: center; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); }
+		        #settings-btn:hover { background: skyblue; color: #333; transform: rotate(90deg) scale(1.1); }
+		        #settings-menu { display: none; position: absolute; bottom: 65px; right: 0; background: #2a2a2a; padding: 15px; border-radius: 12px; box-shadow: 0 5px 25px rgba(0, 0, 0, 0.8); border: 1px solid skyblue; width: 140px; }
+		        #settings-menu h4 { margin: 0 0 10px 0; color: white; font-size: 14px; text-align: center; border-bottom: 1px solid rgba(255, 255, 255, 0.2); padding-bottom: 8px; }
+		        .theme-option { display: block; width: 100%; padding: 10px; margin-bottom: 5px; background: transparent; color: white; border: 1px solid transparent; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 14px; text-align: left; }
+		        .theme-option:hover { background: rgba(135, 206, 235, 0.2); color: skyblue; padding-left: 15px; }
+    </style>
+</head>
+<body>
+
+    <h1 class="about-title">✨ 关于 Vig网站</h1>
+
+    <div class="about-card">
+        <p>欢迎来到 <span class="highlight-version" id="aboutVersion">Vig官方网站 1.0.0.0 正式版</span>！</p>
+        <p>这个页面的功能虽然很少，但是做得非常精细，并且加入了很多流畅的视觉特效，希望能给你带来舒适的浏览体验。</p>
+        <p>天气页面调用了 <strong>Open-Meteo</strong> 平台，可以实时获取并自动刷新未来一周的天气数据。</p>
+        <p>为了做好天气和网站的各种细节，首页代码足足写了 700 多行，每一个特效都经过了反复的调试。</p>
+        <p class="thanks-text">制作不易，谢谢大家的支持！❤️</p>
+    </div>
+
+    <div class="back-link">
+        <a href="index.html">← 返回首页</a>
+    </div>
+
+</body>
+    <div id="settings-wrapper">
+        <button id="settings-btn" title="设置">⚙️</button>
+        <div id="settings-menu">
+            <h4>🎨 页面风格</h4>
+            <button class="theme-option" data-theme="default">🔄 默认</button>
+            <button class="theme-option" data-theme="dark">🌑 纯黑</button>
+            <button class="theme-option" data-theme="light">☀️ 纯白</button>
+        </div>
+    </div>
+</html>
+
+<script>
+    if (location.protocol !== 'file:') {
+        fetch('api/site')
+            .then(response => response.ok ? response.json() : null)
+            .then(site => {
+                if (typeof site?.title !== 'string' || typeof site.version !== 'string') return;
+                const title = site.title === 'vioz官方网站' ? 'Vig官方网站' : site.title;
+                document.getElementById('aboutVersion').textContent = `${title} ${site.version} 正式版`;
+            })
+            .catch(() => {});
+    }
+
+	
+	        const savedTheme = localStorage.getItem('vigTheme');
+	        if (savedTheme && savedTheme !== 'default') {
+	            document.body.classList.add('theme-' + savedTheme);
+	        }
+	
+	        
+	        const settingsBtn = document.getElementById('settings-btn');
+	        const settingsMenu = document.getElementById('settings-menu');
+	        const themeOptions = document.querySelectorAll('.theme-option');
+	
+	        settingsBtn.addEventListener('click', (e) => {
+	            e.stopPropagation();
+	            settingsMenu.style.display = settingsMenu.style.display === 'block' ? 'none' : 'block';
+	        });
+	
+	        document.addEventListener('click', (e) => {
+	            if (!document.getElementById('settings-wrapper').contains(e.target)) {
+	                settingsMenu.style.display = 'none';
+	            }
+	        });
+	
+	        themeOptions.forEach(opt => {
+	            opt.addEventListener('click', function() {
+	                const theme = this.getAttribute('data-theme');
+	                document.body.classList.remove('theme-dark', 'theme-light');
+	                if (theme !== 'default') {
+	                    document.body.classList.add('theme-' + theme);
+	                }
+	                localStorage.setItem('vigTheme', theme);
+	                settingsMenu.style.display = 'none';
+	            });
+	        });
+			document.addEventListener('contextmenu', function(e) {
+			        e.preventDefault(); 
+			        
+			        
+			        showToast('🚫 本页面已禁用右键菜单哦~');
+			    });
+			
+			    
+			    function showToast(msg) {
+			        
+			        let existingToast = document.getElementById('custom-toast');
+			        if (existingToast) existingToast.remove();
+			
+			        
+			        const toast = document.createElement('div');
+			        toast.id = 'custom-toast';
+			        toast.textContent = msg;
+			        
+			        
+			        toast.style.cssText = `
+			            position: fixed;
+			            bottom: 40px;
+			            left: 50%;
+			            transform: translateX(-50%);
+			            background: rgba(0, 0, 0, 0.85);
+			            color: skyblue;
+			            padding: 12px 24px;
+			            border-radius: 30px;
+			            border: 1px solid rgba(135, 206, 235, 0.6);
+			            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.6);
+			            z-index: 999999;
+			            font-size: 14px;
+			            font-weight: bold;
+			            font-family: sans-serif;
+			            pointer-events: none; 
+			            opacity: 0;
+			            animation: toastFade 2s forwards;
+			        `;
+			        
+			        document.body.appendChild(toast);
+			
+			        
+			        setTimeout(() => {
+			            if (toast) toast.remove();
+			        }, 2000);
+			    }
+				document.addEventListener('keydown', function(e) {
+				    
+				    if (e.key === 'F12' || e.keyCode === 123) {
+				        e.preventDefault();
+				        
+				        showToast('🚫 开发者工具已被禁用');
+				    }
+				    
+				    if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j')) {
+				        e.preventDefault();
+				    }
+				    
+				    if (e.ctrlKey && (e.key === 'U' || e.key === 'u')) {
+				        e.preventDefault();
+				    }
+				});
+				document.addEventListener('keydown', function(e) {
+				    if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
+				        e.preventDefault();
+				        
+				    }
+				});
+</script>
